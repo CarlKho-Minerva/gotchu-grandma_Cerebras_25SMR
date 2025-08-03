@@ -18,36 +18,38 @@ load_dotenv()
 
 def load_grandma_persona():
     """Load the Grandma Gertrude persona from YAML file."""
-    persona_path = os.path.join(os.path.dirname(__file__), "prompts", "grandma_persona.yaml")
+    persona_path = os.path.join(
+        os.path.dirname(__file__), "prompts", "grandma_persona.yaml"
+    )
 
-    with open(persona_path, 'r', encoding='utf-8') as file:
+    with open(persona_path, "r", encoding="utf-8") as file:
         persona_data = yaml.safe_load(file)
 
     # Build comprehensive instructions from the YAML data
     instructions = f"""
-CRITICAL: NEVER include stage directions, tone descriptions, or non-verbal actions like "(in a sweet tone)", "*chuckles*", "(confused)", etc.
-ONLY speak the actual words that Grandma Gertrude would say. No brackets, asterisks, or parenthetical descriptions.
+    CRITICAL: NEVER include stage directions, tone descriptions, or non-verbal actions like "(in a sweet tone)", "*chuckles*", "(confused)", etc.
+    ONLY speak the actual words that Grandma Gertrude would say. No brackets, asterisks, or parenthetical descriptions.
 
-{persona_data['system_instructions']}
+    {persona_data['system_instructions']}
 
-CHARACTER DETAILS:
-- Name: {persona_data['name']}
-- Age: {persona_data['age']}
-- Voice: {persona_data['voice_description']}
+    CHARACTER DETAILS:
+    - Name: {persona_data['name']}
+    - Age: {persona_data['age']}
+    - Voice: {persona_data['voice_description']}
 
-PERSONALITY TRAITS:
-{chr(10).join('- ' + trait for trait in persona_data['core_personality']['traits'])}
+    PERSONALITY TRAITS:
+    {chr(10).join('- ' + trait for trait in persona_data['core_personality']['traits'])}
 
-BACKGROUND:
-{chr(10).join('- ' + bg for bg in persona_data['core_personality']['background'])}
+    BACKGROUND:
+    {chr(10).join('- ' + bg for bg in persona_data['core_personality']['background'])}
 
-MISSION: {persona_data['mission']}
+    MISSION: {persona_data['mission']}
 
-Remember to use confusion tactics, stalling tactics, rambling topics, and random questions naturally in conversation.
-Casually mention your strength (benching 330 lbs) and be gently suspicious when appropriate.
+    Remember to use confusion tactics, stalling tactics, rambling topics, and random questions naturally in conversation.
+    Casually mention your strength (benching 330 lbs) and be gently suspicious when appropriate.
 
-SPEAKING STYLE: Speak ONLY in Grandma Gertrude's actual words. No stage directions, tone indicators, or action descriptions whatsoever.
-"""
+    SPEAKING STYLE: Speak ONLY in Grandma Gertrude's actual words. No stage directions, tone indicators, or action descriptions whatsoever.
+    """
 
     return instructions
 
@@ -64,7 +66,7 @@ async def entrypoint(ctx: agents.JobContext):
         llm=openai.LLM.with_cerebras(
             model="llama3.1-8b",
         ),
-        tts=cartesia.TTS(model="sonic-2", voice="f786b574-daa5-4673-aa0c-cbe3e8534c02"),
+        tts=cartesia.TTS(model="sonic-2", voice="d7e54830-4754-4b17-952c-bcdb7e80a2fb"),
         vad=silero.VAD.load(),
         turn_detection=MultilingualModel(),
     )
@@ -83,7 +85,7 @@ async def entrypoint(ctx: agents.JobContext):
     await session.generate_reply(
         instructions=(
             "Greet the caller in character as Grandma Gertrude. "
-            "Be sweet but slightly confused about who's calling."
+            "Be sweet but slightly confused about who's calling and start talking about your benched 330 lbs."
         )
     )
 
@@ -93,6 +95,6 @@ if __name__ == "__main__":
         agents.WorkerOptions(
             entrypoint_fnc=entrypoint,
             # agent_name is required for explicit dispatch
-            agent_name="my-telephony-agent"
+            agent_name="my-telephony-agent",
         )
     )

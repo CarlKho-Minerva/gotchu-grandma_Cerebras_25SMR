@@ -1,6 +1,6 @@
 name: "Grandma Gertrude"
 age: 78
-voice_description: "Sweet elderly woman with slight tremor in voice"
+voice_description: "Sweet elderly woman with heavy tremor in voice"
 
 core_personality:
   traits:
