@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cerebras.gg - 2D Shape Graphics Demo</title>
+    <style>
+        body {
+            font-family: monospace;
+            background-color: #0d0d0d;
+            color: #f0f0f0;
+            margin: 0;
+            padding: 1em;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        h1,
+        p {
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        #controls {
+            flex-shrink: 0;
+        }
+
+        #inputContainer {
+            display: flex;
+            justify-content: center;
+            margin: 1em 0;
+        }
+
+        #gamePrompt {
+            width: 50%;
+            padding: 10px;
+            background-color: #222;
+            border: 1px solid #444;
+            color: #f0f0f0;
+        }
+
+        #generateBtn {
+            padding: 10px;
+            background-color: #FFAA00;
+            color: #000;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #progressBarContainer {
+            width: 60%;
+            margin: 1em auto;
+            background-color: #333;
+            border: 1px solid #555;
+            height: 20px;
+        }
+
+        #progressBar {
+            width: 0%;
+            height: 100%;
+            background-color: #FFAA00;
+            transition: width 0.5s;
+        }
+
+        #status {
+            text-align: center;
+            margin-top: 1em;
+            height: 40px;
+        }
+
+        #gameContainer {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-grow: 1;
+            min-height: 300px;
+        }
+
+        iframe {
+            border: 1px solid #FFAA00;
+            width: 90%;
+            height: 90%;
+            background-color: #000;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>cerebras.gg</h1>
+    <p>The AI-Powered Gaming Arcade. Chat with AI, get instant games.</p>
+
+    <div id="controls">
+        <div id="inputContainer">
+            <input type="text" id="gamePrompt" placeholder="Describe a game... e.g., 'a simple breakout-style game'">
+            <button id="generateBtn">Generate Game</button>
+        </div>
+
+        <div id="progressBarContainer">
+            <div id="progressBar"></div>
+        </div>
+        <div id="status">Welcome! Enter a prompt to begin.</div>
+    </div>
+
+    <div id="gameContainer">
+        <iframe id="gameFrame" title="Generated Game"></iframe>
+    </div>
+
+    <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const gamePromptInput = document.getElementById('gamePrompt');
+        const progressBar = document.getElementById('progressBar');
+        const statusText = document.getElementById('status');
+        const gameFrame = document.getElementById('gameFrame');
+        const gameContainer = document.getElementById('gameContainer');
+
+        const CEREBRAS_API_KEY = "csk-m95fkpmkcth8wvwyft9ydhrfe2chth5cr893x2n23dptxf3m";
+        const API_URL = "https://api.cerebras.ai/v1/chat/completions";
+
+        let progressInterval;
+
+        // --- Event Listeners ---
+        generateBtn.addEventListener('click', generateGame);
+        gamePromptInput.addEventListener('keyup', (event) => {
+            if (event.key === "Enter") {
+                generateGame();
+            }
+        });
+
+        window.addEventListener('keydown', handleKeydown);
+
+        // --- Functions ---
+
+        function handleKeydown(event) {
+            if (event.key.toLowerCase() === 'f') {
+                event.preventDefault();
+                toggleFullScreen();
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                gameContainer.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        function startProgress(durationSeconds) {
+            let width = 0;
+            progressBar.style.width = '0%';
+            clearInterval(progressInterval);
+
+            const increment = 100 / (durationSeconds * 10);
+
+            progressInterval = setInterval(() => {
+                if (width < 90) {
+                    width += increment;
+                    progressBar.style.width = width + '%';
+                } else {
+                    clearInterval(progressInterval);
+                }
+            }, 100);
+        }
+
+        function completeProgress() {
+            clearInterval(progressInterval);
+            progressBar.style.width = '100%';
+        }
+
+        function resetUI() {
+            gameFrame.srcdoc = "";
+            progressBar.style.transition = 'none';
+            progressBar.style.width = '0%';
+            setTimeout(() => {
+                progressBar.style.transition = 'width 0.5s';
+            }, 50);
+        }
+
+        async function generateGame() {
+            const userPrompt = gamePromptInput.value;
+            if (!userPrompt) {
+                statusText.textContent = "Please enter a game idea.";
+                return;
+            }
+
+            resetUI();
+            statusText.textContent = "AI agents are collaborating...";
+            generateBtn.disabled = true;
+            generateBtn.textContent = "Generating...";
+            startProgress(12);
+
+            // *** CORE CHANGE IS HERE: The prompt no longer requires ASCII ***
+            const systemPrompt = `
+                You are an expert team of AI agents collaborating to create a playable game in a single file.
+                Your roles are: Game Architect, Graphics Designer, Game Coder, and Vibe Agent.
+                Your task is to generate a complete, self-contained HTML file based on the user's request.
+
+                **MUST-FOLLOW RULES:**
+                1.  **Single File:** All HTML, CSS, and JavaScript must be in one file. Do not use external files.
+                2.  **Vanilla JavaScript:** Use only standard browser JavaScript. Do not use React, Vue, or any other frameworks.
+                3.  **Simple 2D Graphics:** The game's graphics MUST be rendered using simple geometric shapes (e.g., fillRect, arc) on an HTML <canvas>. DO NOT use ASCII characters or text for game objects.
+                4.  **Playable & Complete:** The game must be fully playable with clear instructions (on the canvas), win/loss conditions, and keyboard controls (e.g., arrow keys, WASD).
+                5.  **Self-Contained:** No external API calls are allowed in the generated code.
+                6.  **Style:** Use a dark background for the canvas and bright, vibrant colors for the game elements. Make it look clean and visually appealing.
+                7.  **Output Format:** Respond ONLY with the raw HTML code for the game. Do not wrap it in markdown backticks or any other text. Start with \`<!DOCTYPE html>\` and end with \`</html>\`.
+
+                The user wants a game. Make it fun, simple, and instantly playable.
+            `;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${CEREBRAS_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "llama3.1-8b",
+                        messages: [
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: userPrompt }
+                        ],
+                        max_tokens: 4096,
+                        temperature: 0.7,
+                        stream: false
+                    })
+                });
+
+                completeProgress();
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`API Error: ${response.status} - ${errorData.error?.message || response.statusText}`);
+                }
+
+                const data = await response.json();
+                const gameCode = data.choices[0]?.message?.content;
+
+                if (!gameCode) {
+                    throw new "Error: API returned an empty response.";
+                }
+
+                const cleanedGameCode = gameCode.replace(/^```html\s*|```\s*$/g, '');
+
+                statusText.innerHTML = `Game Ready! Click inside the game to play.<br>Press 'F' to toggle fullscreen.`;
+                gameFrame.srcdoc = cleanedGameCode;
+
+            } catch (error) {
+                completeProgress();
+                statusText.textContent = `Error: ${error.message}`;
+                console.error("Error generating game:", error);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = "Generate Game";
+            }
+        }
+    </script>
+</body>
+
+</html>
