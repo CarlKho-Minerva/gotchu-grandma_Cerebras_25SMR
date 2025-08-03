@@ -1,6 +1,4 @@
 from dotenv import load_dotenv
-import yaml
-import os
 
 from livekit import agents
 from livekit.agents import AgentSession, Agent, RoomInputOptions
@@ -18,27 +16,7 @@ load_dotenv()
 
 class Assistant(Agent):
     def __init__(self) -> None:
-        # Load the grandma persona from YAML
-        persona_path = os.path.join(
-            os.path.dirname(__file__), "prompts", "grandma_persona.yaml"
-        )
-        with open(persona_path, "r") as f:
-            persona = yaml.safe_load(f)
-
-        # Build instructions from the persona
-        instructions = f"""
-        {persona['system_instructions']}
-
-        CHARACTER: {persona['name']}, age {persona['age']}
-        {persona['voice_description']}
-
-        PERSONALITY: {', '.join(persona['core_personality']['traits'])}
-
-        BACKGROUND: {' '.join(persona['core_personality']['background'])}
-
-        MISSION: {persona['mission']}
-        """
-        super().__init__(instructions=instructions)
+        super().__init__(instructions="You are a helpful voice AI assistant.")
 
 
 async def entrypoint(ctx: agents.JobContext):
@@ -67,4 +45,9 @@ async def entrypoint(ctx: agents.JobContext):
 
 
 if __name__ == "__main__":
-    agents.cli.run_app(agents.WorkerOptions(entrypoint_fnc=entrypoint))
+    agents.cli.run_app(
+        agents.WorkerOptions(
+            entrypoint_fnc=entrypoint,
+            agent_name="my-telephony-agent",
+        )
+    )

@@ -1,3 +1,4 @@
+twilio-installation.md
 .env
 
 # Byte-compiled / optimized / DLL files
@@ -127,3 +128,4 @@ dmypy.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+docs/twilio-installation.md
