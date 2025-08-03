@@ -1,12 +1,14 @@
-# 🚀 Gotchu Grandma - AI-Powered Scam Defense System
+# Gotchu Grandma - AI-Powered Scam Defense System
 
-**Protecting grandparents from phone scams using Cerebras AI and voice technology**
+**Protecting grandparents from phone scams using Cerebras AI and voice technology.**
 
 ### Call now: [+1 415 683 7018](tel:+14156837018)
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://python.org)
 [![LiveKit](https://img.shields.io/badge/LiveKit-Agents-green.svg)](https://livekit.io)
 [![Cerebras](https://img.shields.io/badge/Cerebras-AI-orange.svg)](https://cerebras.ai)
+
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/ba6576a6-879f-406e-9a28-b02362844c51" />
 
 ## 🎯 Project Vision
 
